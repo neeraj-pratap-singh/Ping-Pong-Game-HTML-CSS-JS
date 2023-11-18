@@ -29,24 +29,30 @@ function moveBall() {
     let paddleRect = paddle.getBoundingClientRect();
     let boardRect = gameBoard.getBoundingClientRect();
 
-    // Ball movement
-    ball.style.left = ballRect.left - boardRect.left + ballSpeedX + 'px';
-    ball.style.top = ballRect.top - boardRect.top + ballSpeedY + 'px';
+    // Update ball position
+    let newLeft = ball.offsetLeft + ballSpeedX;
+    let newTop = ball.offsetTop + ballSpeedY;
 
     // Collision with walls
-    if (ballRect.bottom >= boardRect.bottom) {
+    if (newTop + ball.offsetHeight >= boardRect.height) {
         stopGame();
         return;
     }
-    if (ballRect.top <= boardRect.top) {
+    if (newTop <= 0) {
         ballSpeedY *= -1;
+        newTop = 0; // Reset position to stay within bounds
     }
-    if (ballRect.right >= boardRect.right || ballRect.left <= boardRect.left) {
+    if (newLeft + ball.offsetWidth >= boardRect.width || newLeft <= 0) {
         ballSpeedX *= -1;
+        newLeft = Math.max(Math.min(newLeft, boardRect.width - ball.offsetWidth), 0); // Adjust position
     }
 
+    // Update ball style
+    ball.style.left = newLeft + 'px';
+    ball.style.top = newTop + 'px';
+
     // Collision with paddle
-    if (ballRect.bottom >= paddleRect.top && ballRect.left >= paddleRect.left && ballRect.right <= paddleRect.right) {
+    if (ballRect.bottom >= paddleRect.top && ballRect.right >= paddleRect.left && ballRect.left <= paddleRect.right) {
         ballSpeedY *= -1;
         score++;
         scoreDisplay.innerHTML = `Score: ${score}`;
@@ -79,4 +85,5 @@ function resetGame() {
     gameInterval = requestAnimationFrame(moveBall);
 }
 
+// Start the game
 gameInterval = requestAnimationFrame(moveBall);
