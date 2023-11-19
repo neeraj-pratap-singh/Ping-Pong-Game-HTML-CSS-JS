@@ -18,55 +18,42 @@ scoreDisplay.innerHTML = `Score: ${score}`;
 gameBoard.appendChild(scoreDisplay);
 
 document.addEventListener('mousemove', (e) => {
-    let newLeft = e.clientX - gameBoard.offsetLeft - paddle.offsetWidth / 2;
+    let gameBoardRect = gameBoard.getBoundingClientRect();
+    let newLeft = e.clientX - gameBoardRect.left - paddle.offsetWidth / 2;
     newLeft = Math.max(newLeft, 0);
-    newLeft = Math.min(newLeft, gameBoard.offsetWidth - paddle.offsetWidth);
+    newLeft = Math.min(newLeft, gameBoardRect.width - paddle.offsetWidth);
     paddle.style.left = newLeft + 'px';
 });
 
 function moveBall() {
-    let ballRect = ball.getBoundingClientRect();
-    let paddleRect = paddle.getBoundingClientRect();
-    let boardRect = gameBoard.getBoundingClientRect();
-
-    // Update ball position
     let newLeft = ball.offsetLeft + ballSpeedX;
     let newTop = ball.offsetTop + ballSpeedY;
 
     // Collision with walls
-    if (newTop + ball.offsetHeight >= boardRect.height) {
+    if (newTop + ball.offsetHeight > gameBoard.offsetHeight) {
         stopGame();
         return;
     }
-    if (newTop <= 0) {
+    if (newTop < 0) {
         ballSpeedY *= -1;
-        newTop = 0; // Reset position to stay within bounds
     }
-    if (newLeft + ball.offsetWidth >= boardRect.width || newLeft <= 0) {
+    if (newLeft + ball.offsetWidth > gameBoard.offsetWidth || newLeft < 0) {
         ballSpeedX *= -1;
-        newLeft = Math.max(Math.min(newLeft, boardRect.width - ball.offsetWidth), 0); // Adjust position
     }
-
-    // Update ball style
-    ball.style.left = newLeft + 'px';
-    ball.style.top = newTop + 'px';
 
     // Collision with paddle
-    if (ballRect.bottom >= paddleRect.top && ballRect.right >= paddleRect.left && ballRect.left <= paddleRect.right) {
+    if (newTop + ball.offsetHeight >= paddle.offsetTop &&
+        newLeft + ball.offsetWidth >= paddle.offsetLeft &&
+        newLeft <= paddle.offsetLeft + paddle.offsetWidth) {
         ballSpeedY *= -1;
         score++;
         scoreDisplay.innerHTML = `Score: ${score}`;
-        increaseDifficulty();
     }
+
+    ball.style.left = newLeft + 'px';
+    ball.style.top = newTop + 'px';
 
     gameInterval = requestAnimationFrame(moveBall);
-}
-
-function increaseDifficulty() {
-    if (score % 5 === 0) {
-        ballSpeedX *= 1.1;
-        ballSpeedY *= 1.1;
-    }
 }
 
 function stopGame() {
@@ -78,8 +65,6 @@ function stopGame() {
 function resetGame() {
     ball.style.top = '50%';
     ball.style.left = '50%';
-    ballSpeedX = 2;
-    ballSpeedY = 2;
     score = 0;
     scoreDisplay.innerHTML = `Score: ${score}`;
     gameInterval = requestAnimationFrame(moveBall);
